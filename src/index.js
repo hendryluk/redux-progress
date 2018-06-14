@@ -1,5 +1,5 @@
 // @flow
-const nullFunc = (r: any|void) => undefined;
+const nullFunc = (r: any|null) => null;
 
 type Folder<R, T> = {
   none?: () => T;
@@ -31,8 +31,11 @@ export default class Progress<R> {
   map<T>(mapper: (r: R) => T): Progress<T> {
     return (this: Progress<any>);
   }
+  flatMap<T>(mapper: (r: R) => Progress<T>): Progress<T> {
+    return (this: Progress<any>);
+  }
 
-  fold<T>(folder: Folder<R, T>): T | void {
+  fold<T>(folder: Folder<R, T>): T | null {
     return (folder.none || nullFunc)();
   }
 
@@ -47,7 +50,7 @@ class InProgress extends Progress<any> {
     return true;
   }
 
-  fold<T>(folder: Folder<any, T>): T | void {
+  fold<T>(folder: Folder<any, T>): T | null {
     return (folder.loading || nullFunc)();
   }
 }
@@ -68,12 +71,15 @@ class Success<R> extends Progress<R> {
     return this._result;
   }
 
-  fold<T>(folder: Folder<R, T>): T | void {
+  fold<T>(folder: Folder<R, T>): T | null {
     return (folder.success || nullFunc)(this._result);
   }
 
   map<T>(mapper: (r: R) => T): Progress<T> {
     return new Success(mapper(this._result));
+  }
+  flatMap<T>(mapper: (r: R) => Progress<T>): Progress<T> {
+    return mapper(this.result);
   }
 }
 
@@ -87,7 +93,7 @@ class Failed<E> extends Progress<any> {
     return true;
   }
 
-  fold<T>(folder: Folder<any, T>): T | void {
+  fold<T>(folder: Folder<any, T>): T | null {
     return (folder.failed || nullFunc)();
   }
 
