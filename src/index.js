@@ -39,6 +39,10 @@ export default class Progress<R> {
     return (folder.none || nullFunc)();
   }
 
+  ifPresent<T>(func: (r: R) => T) : T | null {
+    return this.fold({success:func})
+  }
+
   get result(): R | void { return undefined; }
   get fieldErrors() {
     return {};
