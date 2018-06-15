@@ -39,7 +39,7 @@ export default class Progress<R> {
     return (folder.none || nullFunc)();
   }
 
-  ifPresent<T>(func: (r: R) => T) : T | null {
+  ifSuccess<T>(func: (r: R) => T) : T | null {
     return this.fold({success:func})
   }
 
