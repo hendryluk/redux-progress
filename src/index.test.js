@@ -1,4 +1,3 @@
-// @flow
 import Progress from './index';
 
 describe('Composite Progress', () => {
