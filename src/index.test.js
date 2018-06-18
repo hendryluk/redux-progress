@@ -34,48 +34,48 @@ describe('Composite Progress', () => {
   });
 
   describe('with multiple elements', () => {
-    describe('containing a none', () => {
-      const composite = Progress.all(
-        Progress.success({}),
-        Progress.fail({}),
-        Progress.inProgress,
-        Progress.none,
-        Progress.success({}),
-        Progress.fail({}),
-        Progress.inProgress,
-        Progress.none,
-      );
-
-      test('should be none', () => {
-        expect(composite).toBe(Progress.none);
-      });
-    });
-
     describe('containing a fail', () => {
       const composite = Progress.all(
         Progress.success({}),
-        Progress.fail({ a: "1" }),
+        Progress.fail({a:'1'}),
         Progress.inProgress,
+        Progress.none,
         Progress.success({}),
-        Progress.fail({ b: "1" }),
+        Progress.fail({b:'2'}),
         Progress.inProgress,
+        Progress.none,
       );
 
       test('should be fail', () => {
-        expect(composite).toEqual(Progress.fail({ a: "1" }));
+        expect(composite).toEqual(Progress.fail({a:'1'}));
       });
     });
 
     describe('containing an in progress', () => {
       const composite = Progress.all(
         Progress.success({}),
+        Progress.none,
         Progress.inProgress,
         Progress.success({}),
+        Progress.none,
         Progress.inProgress,
       );
 
       test('should be in progress', () => {
-        expect(composite).toEqual(Progress.inProgress);
+        expect(composite).toBe(Progress.inProgress);
+      });
+    });
+
+    describe('containing a none', () => {
+      const composite = Progress.all(
+        Progress.success({}),
+        Progress.none,
+        Progress.success({}),
+        Progress.none,
+      );
+
+      test('should be none', () => {
+        expect(composite).toBe(Progress.none);
       });
     });
 

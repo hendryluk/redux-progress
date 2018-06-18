@@ -18,9 +18,9 @@ const findFirst = <T>(arr: T[], callback: T => boolean): T | undefined => {
 };
 
 const buildComposite = (...targets: Progress[]) =>
-  findFirst(targets, p => p === Progress.none) ||
   findFirst(targets, p => p.failed) ||
   findFirst(targets, p => p.inProgress) ||
+  findFirst(targets, p => p === Progress.none) ||
   Progress.success(targets.map(p => p.result));
 
 export default class Progress<R> {
@@ -122,10 +122,6 @@ class Failed<E> extends Progress<any> {
 
   fold<T>(folder: Folder<any, T>): T | null {
     return (folder.failed || nullFunc)();
-  }
-
-  get fieldErrors() {
-    return this.error.fieldErrors || {};
   }
 }
 
