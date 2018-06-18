@@ -1,6 +1,6 @@
 {
-  "name": "@atlassian/redux-progress",
-  "version": "0.0.12",
+  "name": "redux-progress",
+  "version": "0.0.13",
   "description": "Redux model to capture states of asynchronous operations (i.e. promises)",
   "main": "lib/index.js",
   "repository": "https://stash.atlassian.com/users/hluk/repos/redux-progress",
