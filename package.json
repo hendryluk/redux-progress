@@ -1,5 +1,5 @@
 {
-  "name": "@atlassian/redux-progress",
+  "name": "redux-progress",
   "version": "0.0.12",
   "description": "Redux model to capture states of asynchronous operations (i.e. promises)",
   "main": "lib/index.js",
