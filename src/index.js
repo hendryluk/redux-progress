@@ -1,5 +1,5 @@
 // @flow
-const nullFunc = (r: any|null) => null;
+const nullFunc = (r: any | null) => null;
 
 type Folder<R, T> = {
   none?: () => T;
@@ -8,11 +8,27 @@ type Folder<R, T> = {
   failed?: () => T;
 }
 
+const findFirst = <T>(arr: T[], callback: T => boolean): T | undefined => {
+  for (let el of arr) {
+    if(callback(el)) {
+      return el;
+    }
+  }
+  return undefined;
+};
+
+const buildComposite = (...targets: Progress[]) =>
+  findFirst(targets, p => p.failed) ||
+  findFirst(targets, p => p.inProgress) ||
+  findFirst(targets, p => p === Progress.none) ||
+  Progress.success(targets.map(p => p.result));
+
 export default class Progress<R> {
   static none: Progress<any> = new Progress();
   static inProgress: InProgress;
   static success = <X>(result: X) => new Success(result);
   static fail = (error: any) => new Failed(error);
+  static all = buildComposite;
 
   error: any = undefined;
 
@@ -31,6 +47,7 @@ export default class Progress<R> {
   map<T>(mapper: (r: R) => T): Progress<T> {
     return (this: Progress<any>);
   }
+
   flatMap<T>(mapper: (r: R) => Progress<T>): Progress<T> {
     return (this: Progress<any>);
   }
@@ -39,11 +56,14 @@ export default class Progress<R> {
     return (folder.none || nullFunc)();
   }
 
-  ifSuccess<T>(func: (r: R) => T) : T | null {
-    return this.fold({success:func})
+  ifSuccess<T>(func: (r: R) => T): T | null {
+    return this.fold({ success: func })
   }
 
-  get result(): R | void { return undefined; }
+  get result(): R | void {
+    return undefined;
+  }
+
   get fieldErrors() {
     return {};
   }
@@ -58,10 +78,12 @@ class InProgress extends Progress<any> {
     return (folder.loading || nullFunc)();
   }
 }
+
 Progress.inProgress = new InProgress();
 
 class Success<R> extends Progress<R> {
   _result: R;
+
   constructor(result: R) {
     super();
     this._result = result;
@@ -82,6 +104,7 @@ class Success<R> extends Progress<R> {
   map<T>(mapper: (r: R) => T): Progress<T> {
     return new Success(mapper(this._result));
   }
+
   flatMap<T>(mapper: (r: R) => Progress<T>): Progress<T> {
     return mapper(this.result);
   }
@@ -100,15 +123,11 @@ class Failed<E> extends Progress<any> {
   fold<T>(folder: Folder<any, T>): T | null {
     return (folder.failed || nullFunc)();
   }
-
-  get fieldErrors() {
-    return this.error.fieldErrors || {};
-  }
 }
 
 const action = (type, progress, extras) => ({ ...extras, type, progress });
 
-export const thunkProgress = <R>(type: string, promise: Promise<R>, extras: any) => (dispatch: any=>void) => {
+export const thunkProgress = <R>(type: string, promise: Promise<R>, extras: any) => (dispatch: any => void) => {
   dispatch(action(type, Progress.inProgress, extras));
   return promise
     .then(result => dispatch(action(type, Progress.success(result), extras)))
