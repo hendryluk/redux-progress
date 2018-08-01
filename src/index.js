@@ -8,7 +8,7 @@ type Folder<R, T> = {
   failed?: () => T;
 }
 
-const findFirst = <T>(arr: T[], callback: T => boolean): T | undefined => {
+const findFirst = <T>(arr: T[], callback: T => boolean): T | void => {
   for (let el of arr) {
     if(callback(el)) {
       return el;
@@ -17,7 +17,7 @@ const findFirst = <T>(arr: T[], callback: T => boolean): T | undefined => {
   return undefined;
 };
 
-const buildComposite = (...targets: Progress[]) =>
+const buildComposite = (...targets: Progress<any>[]) =>
   findFirst(targets, p => p.failed) ||
   findFirst(targets, p => p.inProgress) ||
   findFirst(targets, p => p === Progress.none) ||
@@ -26,7 +26,7 @@ const buildComposite = (...targets: Progress[]) =>
 export default class Progress<R> {
   static none: Progress<any> = new Progress();
   static inProgress: InProgress;
-  static success = <X>(result: X) => new Success(result);
+  static success = <X>(result: X) => new Success<X>(result);
   static fail = (error: any) => new Failed(error);
   static all = buildComposite;
 
@@ -110,7 +110,7 @@ class Success<R> extends Progress<R> {
   }
 }
 
-class Failed<E> extends Progress<any> {
+class Failed extends Progress<any> {
   constructor(error?: any) {
     super();
     this.error = error;
