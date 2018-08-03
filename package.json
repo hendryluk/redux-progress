@@ -1,6 +1,6 @@
 {
   "name": "redux-progress",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Redux model to capture states of asynchronous operations (i.e. promises)",
   "main": "lib/index.js",
   "repository": "https://stash.atlassian.com/users/hluk/repos/redux-progress",
@@ -12,14 +12,14 @@
     "babel-core": "^6.26.3",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-flow": "^6.23.0",
     "flow-bin": "^0.74.0",
     "flow-copy-source": "^2.0.0",
     "jest": "^23.1.0"
   },
   "scripts": {
-    "build": "jest && babel --ignore *.test.js src/ -d lib/ && flow-copy-source --ignore *.test.js src lib",
+    "build": "jest --env=node && babel --ignore *.test.js src/ -d lib/ && flow-copy-source --ignore *.test.js src lib",
     "prepublish": "yarn run build",
     "test": "jest src"
   },

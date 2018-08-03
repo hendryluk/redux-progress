@@ -17,18 +17,12 @@ const findFirst = <T>(arr: T[], callback: T => boolean): T | void => {
   return undefined;
 };
 
-const buildComposite = (...targets: Progress<any>[]) =>
-  findFirst(targets, p => p.failed) ||
-  findFirst(targets, p => p.inProgress) ||
-  findFirst(targets, p => p === Progress.none) ||
-  Progress.success(targets.map(p => p.result));
-
 export default class Progress<R> {
-  static none: Progress<any> = new Progress();
+  static none: Progress<any>;
   static inProgress: InProgress;
-  static success = <X>(result: X) => new Success<X>(result);
-  static fail = (error: any) => new Failed(error);
-  static all = buildComposite;
+  static success: <T>(result: T)=> Progress<T>;
+  static fail: (any) => Progress<any>;
+  static all: (...Progress<any>[])=> Progress<any[]>;
 
   error: any = undefined;
 
@@ -63,10 +57,6 @@ export default class Progress<R> {
   get result(): R | void {
     return undefined;
   }
-
-  get fieldErrors() {
-    return {};
-  }
 }
 
 class InProgress extends Progress<any> {
@@ -78,8 +68,6 @@ class InProgress extends Progress<any> {
     return (folder.loading || nullFunc)();
   }
 }
-
-Progress.inProgress = new InProgress();
 
 class Success<R> extends Progress<R> {
   _result: R;
@@ -124,6 +112,16 @@ class Failed extends Progress<any> {
     return (folder.failed || nullFunc)();
   }
 }
+
+Progress.none = new Progress();
+Progress.inProgress = new InProgress();
+Progress.success = <R>(result: R) => new Success(result);
+Progress.fail = (error: any) => new Failed(error);
+Progress.all = (...targets: Progress<any>[]) =>
+  findFirst(targets, p => p.failed) ||
+  findFirst(targets, p => p.inProgress) ||
+  findFirst(targets, p => p === Progress.none) ||
+  Progress.success(targets.map(p => p.result));
 
 const action = (type, progress, extras) => ({ ...extras, type, progress });
 
