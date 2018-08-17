@@ -1,11 +1,11 @@
 // @flow
 const nullFunc = (r: any | null) => null;
 
-type Folder<R, T> = {
-  none?: () => T;
-  loading?: () => T;
-  success?: (r: R) => T;
-  failed?: () => T;
+type Folder<-R, T> = {
+  +none?: () => T;
+  +loading?: () => T;
+  +success?: (r: R) => T;
+  +failed?: () => T;
 }
 
 const findFirst = <T>(arr: T[], callback: T => boolean): T | void => {
@@ -86,8 +86,8 @@ class Success<R> extends Progress<R> {
     return this._result;
   }
 
-  fold<T>(folder: Folder<R, T>): T | null {
-    return (folder.success || nullFunc)(this._result);
+  fold<T>(folder: Folder<$ReadOnly<R>, T>): T | null {
+    return (folder.success || nullFunc)((this._result: any));
   }
 
   map<T>(mapper: (r: R) => T): Progress<T> {
