@@ -17,12 +17,13 @@ const findFirst = <T>(arr: T[], callback: T => boolean): T | void => {
   return undefined;
 };
 
-export default class Progress<R> {
+type ExtractResult = <R>(Progress<R>) => R;
+export default class Progress<+R> {
   static none: Progress<any>;
-  static inProgress: InProgress;
+  static inProgress: Progress<any>;
   static success: <T>(result: T)=> Progress<T>;
   static fail: (any) => Progress<any>;
-  static all: (...Progress<any>[])=> Progress<any[]>;
+  static all: <I: Array<Progress<mixed>>>(...I)=> Progress<$TupleMap<I, ExtractResult>>;
 
   error: any = undefined;
 
@@ -115,16 +116,17 @@ class Failed extends Progress<any> {
 
 Progress.none = new Progress();
 Progress.inProgress = new InProgress();
-Progress.success = <R>(result: R) => new Success(result);
+Progress.success = <R>(result: R): Progress<R> => new Success(result);
 Progress.fail = (error: any) => new Failed(error);
-Progress.all = (...targets: Progress<any>[]) =>
-  findFirst(targets, p => p.failed) ||
+Progress.all = (...targets: Progress<mixed>[]) =>
+  (findFirst(targets, p => p.failed) ||
   findFirst(targets, p => p.inProgress) ||
   findFirst(targets, p => p === Progress.none) ||
-  Progress.success(targets.map(p => p.result));
+  Progress.success(targets.map(p => p.result)): Progress<any>);
 
 const action = (type, progress, extras) => ({ ...extras, type, progress });
 
+export const { none, inProgress, success, fail, all } = Progress;
 export const thunkProgress = <R>(type: string, promise: Promise<R>, extras: any) => (dispatch: any => void) => {
   dispatch(action(type, Progress.inProgress, extras));
   return promise
