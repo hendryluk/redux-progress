@@ -35,8 +35,20 @@ export default class Progress<+R> {
     return false;
   }
 
+  get isCompleted(): boolean {
+    return this.failed || this.success;
+  }
+
   get inProgress(): boolean {
     return false;
+  }
+
+  get isStarted(): boolean {
+    return this.inProgress || this.isCompleted;
+  }
+
+  get isNone(): boolean {
+    return !this.isStarted;
   }
 
   map<T>(mapper: (r: R) => T): Progress<T> {

@@ -21,7 +21,7 @@
   "scripts": {
     "build": "jest --env=node && babel --ignore *.test.js src/ -d lib/ && flow-copy-source --ignore *.test.js src lib",
     "prepublish": "yarn run build",
-    "test": "jest src"
+    "test": "jest --env=node src"
   },
   "files": [
     "lib"
