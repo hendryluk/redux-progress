@@ -8,15 +8,6 @@ type Folder<-R, T> = {
   +failed?: () => T;
 }
 
-const findFirst = <T>(arr: T[], callback: T => boolean): T | void => {
-  for (let el of arr) {
-    if(callback(el)) {
-      return el;
-    }
-  }
-  return undefined;
-};
-
 type ExtractResult = <R>(Progress<R>) => R;
 export default class Progress<+R> {
   static none: Progress<any>;
@@ -131,9 +122,9 @@ Progress.inProgress = new InProgress();
 Progress.success = <R>(result: R): Progress<R> => new Success(result);
 Progress.fail = (error: any) => new Failed(error);
 Progress.all = (...targets: Progress<mixed>[]) =>
-  (findFirst(targets, p => p.failed) ||
-  findFirst(targets, p => p.inProgress) ||
-  findFirst(targets, p => p === Progress.none) ||
+  (targets.find(p => p.failed) ||
+  targets.find(p => p.inProgress) ||
+  targets.find(p => p === Progress.none) ||
   Progress.success(targets.map(p => p.result)): Progress<any>);
 
 const action = (type, progress, extras) => ({ ...extras, type, progress });
