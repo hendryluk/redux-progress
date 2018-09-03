@@ -142,6 +142,12 @@ export const { none, inProgress, success, fail, all } = Progress;
 export const thunkProgress = <R>(type: string, promise: Promise<R>, extras: any) => (dispatch: any => void) => {
   dispatch(action(type, Progress.inProgress, extras));
   return promise
-    .then(result => dispatch(action(type, Progress.success(result), extras)))
-    .catch(error => dispatch(action(type, Progress.fail(error), extras)));
+    .then(result => {
+      dispatch(action(type, Progress.success(result), extras));
+      return result;
+    })
+    .catch(error => {
+      dispatch(action(type, Progress.fail(error), extras));
+      return Promise.reject(error);
+    });
 };
