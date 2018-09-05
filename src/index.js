@@ -67,6 +67,13 @@ export default class Progress<+R> {
     return this.fold({ success: func })
   }
 
+  unwrap(): T | void {
+    if(failed) {
+      throw e;
+    }
+    return result;
+  }
+
   get result(): R | void {
     return undefined;
   }
