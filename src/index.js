@@ -139,15 +139,16 @@ Progress.all = (...targets: Progress<mixed>[]) =>
 const action = (type, progress, extras) => ({ ...extras, type, progress });
 
 export const { none, inProgress, success, fail, all } = Progress;
-export const thunkProgress = <R>(type: string, promise: Promise<R>, extras: any) => (dispatch: any => void) => {
+export const thunkProgress = <R>(type: string, promise: Promise<R>, extras: any) => async (dispatch: any => void) => {
   dispatch(action(type, Progress.inProgress, extras));
-  return promise
-    .then(result => {
-      dispatch(action(type, Progress.success(result), extras));
-      return result;
-    })
-    .catch(error => {
-      dispatch(action(type, Progress.fail(error), extras));
-      return Promise.reject(error);
-    });
+  let progress;
+  try {
+    const result = await promise;
+    progress = Progress.success(result);
+  }
+  catch(error) {
+    progress = Progress.fail(error);
+  }
+  dispatch(action(type, progress, extras));
+  return progress;
 };

@@ -13,3 +13,4 @@ yarn-error.log*
 /.changelog
 /lib
 /package-lock.json
+*.iml
