@@ -5,7 +5,7 @@ type Folder<-R, T> = {
   +none?: () => T;
   +loading?: () => T;
   +success?: (r: R) => T;
-  +failed?: () => T;
+  +failed?: (any) => T;
 }
 
 const findFirst = <T>(arr: T[], callback: T => boolean): T | void => {
@@ -122,7 +122,7 @@ class Failed extends Progress<any> {
   }
 
   fold<T>(folder: Folder<any, T>): T | null {
-    return (folder.failed || nullFunc)();
+    return (folder.failed || nullFunc)(this.error);
   }
 }
 
