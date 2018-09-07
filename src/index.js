@@ -67,11 +67,8 @@ export default class Progress<+R> {
     return this.fold({ success: func })
   }
 
-  unwrap(): T | void {
-    if(failed) {
-      throw e;
-    }
-    return result;
+  unwrap(): R {
+    throw new Error('Uncompleted progress')
   }
 
   get result(): R | void {
@@ -105,6 +102,11 @@ class Success<R> extends Progress<R> {
     return this._result;
   }
 
+  unwrap() {
+    return this._result;
+  }
+
+
   fold<T>(folder: Folder<$ReadOnly<R>, T>): T | null {
     return (folder.success || nullFunc)((this._result: any));
   }
@@ -130,6 +132,10 @@ class Failed extends Progress<any> {
 
   fold<T>(folder: Folder<any, T>): T | null {
     return (folder.failed || nullFunc)(this.error);
+  }
+
+  unwrap() {
+    throw this.error;
   }
 }
 
