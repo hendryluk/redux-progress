@@ -3,7 +3,7 @@
   "version": "0.0.27",
   "description": "Redux model to capture states of asynchronous operations (i.e. promises)",
   "main": "lib/index.js",
-  "repository": "https://stash.atlassian.com/users/hluk/repos/redux-progress",
+  "repository": "https://github.com/hendryluk/redux-progress",
   "author": "hluk <hluk@atlassian.com>",
   "license": "ISC",
   "dependencies": {},
