@@ -24,6 +24,7 @@ export default class Progress<+R> {
   static success: <T>(result: T)=> Progress<T>;
   static fail: (any) => Progress<any>;
   static all: <I: Array<Progress<mixed>>>(...I)=> Progress<$TupleMap<I, ExtractResult>>;
+  static race: <T>(...Progress<T>[])=> Progress<T>;
 
   error: any = undefined;
 
@@ -102,7 +103,7 @@ class Success<R> extends Progress<R> {
     return this._result;
   }
 
-  unwrap() {
+  unwrap(): R {
     return this._result;
   }
 
@@ -148,6 +149,11 @@ Progress.all = (...targets: Progress<mixed>[]) =>
   findFirst(targets, p => p.inProgress) ||
   findFirst(targets, p => p === Progress.none) ||
   Progress.success(targets.map(p => p.result)): Progress<any>);
+Progress.race = <T>(...targets: Progress<T>[]) =>
+  findFirst(targets, p => p.isCompleted) ||
+  findFirst(targets, p => p.inProgress) ||
+  targets[0] ||
+  Progress.none;
 
 const action = (type, progress, extras) => ({ ...extras, type, progress });
 
