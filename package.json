@@ -1,6 +1,6 @@
 {
   "name": "redux-progress",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "description": "Redux model to capture states of asynchronous operations (i.e. promises)",
   "main": "lib/index.js",
   "repository": "https://github.com/hendryluk/redux-progress",
