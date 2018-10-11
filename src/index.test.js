@@ -1,5 +1,19 @@
 import Progress from './index';
 
+describe('Progress.map', () => {
+  describe('success', () => {
+    const progress = Progress.success(10);
+
+    test('can map result', () => {
+      expect(progress.map(x => x + 5).result).toBe(15);
+    });
+
+    test('identity mapper, should return the same progress', () => {
+      expect(progress.map(x => x)).toBe(progress);
+    });
+  })
+})
+
 describe('Composite Progress', () => {
   describe('with one element', () => {
     describe('which is none', () => {

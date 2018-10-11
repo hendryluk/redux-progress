@@ -113,7 +113,8 @@ class Success<R> extends Progress<R> {
   }
 
   map<T>(mapper: (r: R) => T): Progress<T> {
-    return new Success(mapper(this._result));
+    const newResult = mapper(this._result);
+    return (newResult === this._result)? this: new Success(newResult);
   }
 
   flatMap<T>(mapper: (r: R) => Progress<T>): Progress<T> {
