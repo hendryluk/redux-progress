@@ -1,3 +1,12 @@
+type Folder<R, T> = {
+  none?: () => T;
+  inProgress?: () => T;
+  success?: (r: R) => T;
+  failed?: (e: any) => T;
+}
+
+const nullFunc = (r?: any) => null;
+
 export abstract class Progress<R> {
   get success(): boolean {
     return false
@@ -26,6 +35,8 @@ export abstract class Progress<R> {
   then<T>(successMapper: (r: R) => T): Progress<T> {
     return this as any
   }
+
+  abstract fold<T>(folder: Folder<R, T>): T | null
 
   unwrap(): R {
     throw new Error('Uncompleted progress')
@@ -60,6 +71,10 @@ class Success<R> extends Progress<R> implements SuccessData<R> {
     const newResult: any = mapper(this._result)
     return newResult === this.result ? this : new Success(newResult)
   }
+
+  fold<T>(folder: Folder<R, T>): T | null {
+    return (folder.success || nullFunc)((this._result));
+  }
 }
 
 class Failed extends Progress<any> implements FailedData {
@@ -78,6 +93,10 @@ class Failed extends Progress<any> implements FailedData {
   unwrap(): never {
     throw this.error
   }
+
+  fold<T>(folder: Folder<any, T>): T | null {
+    return (folder.failed || nullFunc)(this.error);
+  }
 }
 
 export const inProgress: Progress<any> = (() => {
@@ -87,6 +106,10 @@ export const inProgress: Progress<any> = (() => {
     get isInProgress(): boolean {
       return true
     }
+
+    fold<T>(folder: Folder<any, T>): T | null {
+      return (folder.inProgress || nullFunc)();
+    }
   }
 
   return new InProgress()
@@ -95,6 +118,10 @@ export const inProgress: Progress<any> = (() => {
 export const none: Progress<any> = (() => {
   class None extends Progress<any> implements AsyncData<any> {
     readonly type = 'none'
+
+    fold<T>(folder: Folder<any, T>): T | null {
+      return (folder.none || nullFunc)();
+    }
   }
 
   return new None()
@@ -147,7 +174,7 @@ export const all = (...targets: Progress<unknown>[]): Progress<unknown> =>
 export const race = <T>(...targets: Progress<T>[]): Progress<T> =>
   targets.find(p => p.isCompleted) || targets.find(p => p.isInProgress) || targets[0] || none
 
-const buildProgress = <R>(type: string, promise: Promise<R>, extras: any) => async (
+export const thunk = <R>(type: string, promise: Promise<R>, extras: any) => async (
   dispatch: (a: any) => void
 ) => {
   const action = (type: any, progress: any, extras: any) => ({ ...extras, type, progress })
@@ -164,4 +191,4 @@ const buildProgress = <R>(type: string, promise: Promise<R>, extras: any) => asy
   return progress
 }
 
-export default buildProgress
+export default thunk
