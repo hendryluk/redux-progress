@@ -1,4 +1,5 @@
 .idea/
+*.iml
 .vscode/
 node_modules/
 build
@@ -13,4 +14,16 @@ yarn-error.log*
 /.changelog
 /lib
 /package-lock.json
-*.iml
+/dist
+
+
+coverage
+.nyc_output
+.DS_Store
+*.log
+.vscode
+dist
+compiled
+.awcache
+.rpt2_cache
+docs
