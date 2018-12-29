@@ -1,4 +1,4 @@
-import * as Progress from '../src/redux-progress'
+import Progress from '../src/redux-progress'
 
 it('serializes Success as expected', () => {
   expect(JSON.stringify(Progress.resolve({ x: 1 }))).toEqual(

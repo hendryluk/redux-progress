@@ -1,4 +1,4 @@
-import * as Progress from '../src/redux-progress'
+import Progress from '../src/redux-progress'
 
 const mapper = (r: number) => r + 5;
 

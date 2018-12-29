@@ -1,4 +1,4 @@
-import * as Progress from '../src/redux-progress'
+import Progress from '../src/redux-progress'
 
 it('should return a successful progress if present', () => {
   expect(Progress.race(Progress.resolve('x'), Progress.pending)).toEqual(Progress.resolve('x'))
