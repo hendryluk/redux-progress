@@ -38,7 +38,13 @@ it('can catch and map error', () => {
     .toEqual(Progress.resolve(12));
 });
 
-it('can catch and rethrow error', () => {
-  expect(Progress.reject(10).then(r => r + 1, e => { throw e }))
-    .toEqual(Progress.reject(10));
+it('can catch and throw a new error', () => {
+  expect(Progress.reject(10).then(r => r + 1, e => { throw e + 2 }))
+    .toEqual(Progress.reject(12));
+});
+
+it('rethrow should return the same progress', () => {
+  const progress = Progress.reject(10);
+  expect(progress.then(r => r + 1, e => { throw e }))
+    .toBe(progress);
 });

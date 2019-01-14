@@ -1,15 +1,16 @@
-type WhenMapper<R, T> = {
-  none?: () => T | Progress<T>;
-  pending?: () => T | Progress<T>;
-  resolved?: (r: R) => T | Progress<T>;
-  rejected?: (e: any) => T | Progress<T>;
+/* @deprecated Use WhenMapper */
+type FoldMapper <R, T> = {
+  none?: () => Resolvable<T>;
+  loading?: () => Resolvable<T>;
+  success?: (r: R) => Resolvable<T>;
+  failed?: (e: any) => Resolvable<T>;
+}
 
-  /* @deprecated Use pending */
-  loading?: () => T | Progress<T>;
-  /* @deprecated Use resolved */
-  success?: (r: R) => T | Progress<T>;
-  /* @deprecated Use rejected */
-  failed?: (e: any) => T | Progress<T>;
+type WhenMapper<R, T> = {
+  none?: () => Resolvable<T>;
+  pending?: () => Resolvable<T>;
+  resolved?: (r: R) => Resolvable<T>;
+  rejected?: (e: any) => Resolvable<T>;
 }
 
 export enum Status {
@@ -19,23 +20,29 @@ export enum Status {
   none = 'none',
 }
 
+type Resolvable<T> = T | Progress<T>;
+
 interface PendingData { status: Status.pending }
 interface NoneData { status: 'none' }
 
-const map = <T>(mapper?: (...r: any[]) => T, ...args: any[]): Progress<T> | undefined => {
+const map = <R, T>(self: Progress<R>, mapper?: () => Resolvable<T>): Progress<T> => {
   if(!mapper) {
-    return undefined;
+    return self as any;
   }
+
+  let result;
   try {
-    return Progress.resolve(mapper(...args))
+    result = Progress.resolve(mapper())
   }
   catch(e) {
-    return Progress.reject(e);
+    result = Progress.reject(e);
   }
+
+  return self.equals(result) ? self : result;
 };
 
 export abstract class Progress<R> {
-  static resolve = <R>(r: R | Progress<R>): Progress<R> => {
+  static resolve = <R>(r: Resolvable<R>): Progress<R> => {
     if(r instanceof Progress) {
       return r;
     }
@@ -46,8 +53,8 @@ export abstract class Progress<R> {
     class Pending extends Progress<any> implements PendingData {
       readonly status = Status.pending;
 
-      ifPending<T>(supplier: () => T | Progress<T>): Progress<T> {
-        return map(supplier) || this as any;
+      ifPending<T>(supplier: () => Resolvable<T>): Progress<T> {
+        return map(this, supplier);
       }
     }
 
@@ -58,8 +65,8 @@ export abstract class Progress<R> {
     class None extends Progress<any> implements NoneData {
       readonly status = Status.none;
 
-      ifNone<T>(supplier: () => T | Progress<T>): Progress<T> {
-        return map(supplier) || this as any;
+      ifNone<T>(supplier: () => Resolvable<T>): Progress<T> {
+        return map(this, supplier);
       }
     }
 
@@ -73,7 +80,7 @@ export abstract class Progress<R> {
     Progress.resolve(targets.map(p => p.value));
 
   static race = <T>(...targets: Progress<T>[]): Progress<T> =>
-    targets.find(p => p.isCompleted) || targets.find(p => p.isPending) || targets[0] || Progress.none;
+    targets.find(p => p.isFulfilled) || targets.find(p => p.isPending) || targets[0] || Progress.none;
 
   abstract readonly status: Status;
   readonly value?: R;
@@ -95,7 +102,7 @@ export abstract class Progress<R> {
     return Progress.pending;
   }
   /* @deprecated Use pending */
-  static success = <R>(r: R | Progress<R>): Progress<R> => {
+  static success = <R>(r: Resolvable<R>): Progress<R> => {
     // console.warn('Progress.success is deprecated. Use resolve');
     return Progress.resolve(r);
   };
@@ -124,20 +131,30 @@ export abstract class Progress<R> {
     // console.warn('Progress.result is deprecated. Use value');
     return this.value;
   }
+  /* @deprecated Use isFulfilled */
+  get isCompleted() : boolean {
+    // console.warn('Progress.isCompleted is deprecated. Use isFulfilled');
+    return this.isFulfilled;
+  }
   /* @deprecated Use get */
   unwrap(): R {
     // console.warn('Progress.unwrap is deprecated. Use get');
     return this.get();
   }
   /* @deprecated Use then().value */
-  ifSuccess<T>(mapper: (r: R) => T): T | null {
+  ifSuccess<T>(mapper: (r: R) => Resolvable<T>): T | null {
     // console.warn('Progress.ifSuccess is deprecated. Use then().value');
     return this.then(mapper).value || null;
   }
   /* @deprecated Use when().value */
-  fold<T>(mapper: WhenMapper<R, T>): T | null {
+  fold<T>(mapper: FoldMapper<R, T>): T | null {
     // console.warn('Progress.fold is deprecated. Use when().value');
-    return this.when(mapper).value || null;
+    return this.when({
+      none: mapper.none,
+      pending: mapper.loading,
+      resolved: mapper.success,
+      rejected: mapper.failed,
+    }).value || null;
   }
 
   get isNone() : boolean {
@@ -156,39 +173,50 @@ export abstract class Progress<R> {
     return this.status === Status.rejected;
   }
 
-  get isCompleted(): boolean {
+  get isFulfilled(): boolean {
     return this.isRejected || this.isResolved
   }
 
-  ifNone<T>(supplier?: () => T | Progress<T>): Progress<T> {
+  ifNone<T>(supplier?: () => Resolvable<T>): Progress<T> {
     return this as any;
   }
 
-  ifPending<T>(supplier?: () => T | Progress<T>): Progress<T> {
+  ifPending<T>(supplier?: () => Resolvable<T>): Progress<T> {
     return this as any;
   }
 
-  then<T>(mapper?: (r: R) => T | Progress<T>, errorMapper?: (e: any) => T): Progress<T> {
+  then<T>(): Progress<T>;
+  then<T>(mapper?: (r: R) => Resolvable<T>): Progress<T>;
+  then<T1, T2>(mapper?: (r: R) => Resolvable<T1>, errorMapper?: (e: any) => Resolvable<T2>): Progress<T1 | T2>;
+  then<T1, T2>(mapper?: (r: R) => Resolvable<T1>, errorMapper?: (e: any) => Resolvable<T2>): Progress<T1 | T2> {
     return this as any
   }
 
-  catch<T>(errorMapper?: (e: any) => T | Progress<T> | Progress<T>): Progress<T> {
+  catch<T>(errorMapper?: (e: any) => Resolvable<T>): Progress<T> {
     return this as any
   }
 
-  finally<T>(supplier?: () => T | Progress<T>): Progress<T> {
-    return this.then(supplier).catch(supplier);
+  finally<T>(supplier?: () => Resolvable<T>): Progress<T> {
+    return this.then(supplier, supplier);
   }
 
   when<T>(mapper: WhenMapper<R, T>): Progress<T> {
-    return this.then(mapper.resolved || mapper.success)
-      .catch(mapper.rejected || mapper.failed)
+    return this.then(mapper.resolved)
+      .catch(mapper.rejected)
       .ifNone(mapper.none)
-      .ifPending(mapper.pending || mapper.loading)
+      .ifPending(mapper.pending)
   }
 
   get(): R {
     throw new Error('Progress not completed')
+  }
+
+  equals(progress: Progress<any>): boolean {
+    return progress &&
+      progress instanceof Progress &&
+      this.status === progress.status &&
+      this.value === progress.value &&
+      this.error === progress.error;
   }
 }
 
@@ -209,8 +237,8 @@ class Resolved<R> extends Progress<R> implements ResolvedData<R> {
     return this.value
   }
 
-  then<T>(mapper: (r: R) => T | Progress<T>): Progress<T> {
-    return map(mapper, this.value) || this as any;
+  then<T>(mapper?: (r: R) => Resolvable<T>): Progress<T> {
+    return map(this, mapper && (()=>mapper(this.value)));
   }
 }
 
@@ -231,12 +259,12 @@ class Rejected extends Progress<any> implements RejectedData {
     throw this.error
   }
 
-  then<T>(mapper: (r: any) => T | Progress<T>, errorMapper?: (e: any) => T): Progress<T> {
+  then<T>(mapper?: (r: any) => Resolvable<any>, errorMapper?: (e: any) => Resolvable<T>): Progress<T> {
     return this.catch(errorMapper);
   }
 
-  catch<T>(mapper?: (r: any) => T | Progress<T>): Progress<T> {
-    return map(mapper, this.error) || this as any;
+  catch<T>(mapper?: (r: any) => Resolvable<T>): Progress<T> {
+    return map(this, mapper && (()=>mapper(this.error)));
   }
 }
 
@@ -261,7 +289,7 @@ export const from = <R>(
     default:
       throw new Error(`Unknown Progress type: ${(serialized as any).status}`)
   }
-}
+};
 
 export const thunk = <R>(type: string, promiseOrFunc: Promise<R> | (() => Promise<R>), extras: any) => async (
   dispatch: (a: any) => void
@@ -285,3 +313,7 @@ export const thunk = <R>(type: string, promiseOrFunc: Promise<R> | (() => Promis
 export const thunkProgress = thunk;
 
 export default Progress
+
+/* @deprecated */
+export const { inProgress, success, fail } = Progress;
+export const { none, pending, resolve, reject, all, race } = Progress;
