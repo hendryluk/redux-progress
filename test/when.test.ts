@@ -54,3 +54,13 @@ describe('rejected', () => {
     expect(progress.when({})).toBe(progress);
   });
 });
+
+test('should not cross call', () => {
+  const mapper = {
+    resolved: () => Progress.none,
+    none: () => 2,
+  };
+
+  expect(Progress.resolve(1).when(mapper)).toBe(Progress.none);
+  expect(Progress.none.when(mapper)).toEqual(Progress.resolve(2));
+});

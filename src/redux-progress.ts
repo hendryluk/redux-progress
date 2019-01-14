@@ -53,8 +53,12 @@ export abstract class Progress<R> {
     class Pending extends Progress<any> implements PendingData {
       readonly status = Status.pending;
 
-      ifPending<T>(supplier: () => Resolvable<T>): Progress<T> {
+      ifPending<T>(supplier?: () => Resolvable<T>): Progress<T> {
         return map(this, supplier);
+      }
+
+      when<T>(mapper: WhenMapper<any, T>): Progress<T> {
+        return this.ifPending(mapper.pending);
       }
     }
 
@@ -65,8 +69,12 @@ export abstract class Progress<R> {
     class None extends Progress<any> implements NoneData {
       readonly status = Status.none;
 
-      ifNone<T>(supplier: () => Resolvable<T>): Progress<T> {
+      ifNone<T>(supplier?: () => Resolvable<T>): Progress<T> {
         return map(this, supplier);
+      }
+
+      when<T>(mapper: WhenMapper<any, T>): Progress<T> {
+        return this.ifNone(mapper.none);
       }
     }
 
@@ -101,12 +109,12 @@ export abstract class Progress<R> {
     // console.warn('Progress.inProgress is deprecated. Use pending');
     return Progress.pending;
   }
-  /* @deprecated Use pending */
+  /* @deprecated Use resolve */
   static success = <R>(r: Resolvable<R>): Progress<R> => {
     // console.warn('Progress.success is deprecated. Use resolve');
     return Progress.resolve(r);
   };
-  /* @deprecated Use pending */
+  /* @deprecated Use reject */
   static fail = (error: any): Progress<any> => {
     // console.warn('Progress.fail is deprecated. Use reject');
     return Progress.reject(error);
@@ -200,12 +208,7 @@ export abstract class Progress<R> {
     return this.then(supplier, supplier);
   }
 
-  when<T>(mapper: WhenMapper<R, T>): Progress<T> {
-    return this.then(mapper.resolved)
-      .catch(mapper.rejected)
-      .ifNone(mapper.none)
-      .ifPending(mapper.pending)
-  }
+  abstract when<T>(mapper: WhenMapper<R, T>): Progress<T>;
 
   get(): R {
     throw new Error('Progress not completed')
@@ -240,6 +243,10 @@ class Resolved<R> extends Progress<R> implements ResolvedData<R> {
   then<T>(mapper?: (r: R) => Resolvable<T>): Progress<T> {
     return map(this, mapper && (()=>mapper(this.value)));
   }
+
+  when<T>(mapper: WhenMapper<any, T>): Progress<T> {
+    return this.then(mapper.resolved);
+  }
 }
 
 interface RejectedData {
@@ -265,6 +272,10 @@ class Rejected extends Progress<any> implements RejectedData {
 
   catch<T>(mapper?: (r: any) => Resolvable<T>): Progress<T> {
     return map(this, mapper && (()=>mapper(this.error)));
+  }
+
+  when<T>(mapper: WhenMapper<any, T>): Progress<T> {
+    return this.catch(mapper.rejected);
   }
 }
 
