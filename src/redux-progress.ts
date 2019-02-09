@@ -302,7 +302,7 @@ export const from = <R>(
   }
 };
 
-export const thunk = <R>(type: string, promiseOrFunc: Promise<R> | (() => Promise<R>), extras: any) => async (
+export const thunk = <R>(type: string, promiseOrFunc: Promise<R> | (() => Promise<R>), extras?: any) => async (
   dispatch: (a: any) => void
 ) => {
   const action = (type: any, progress: any, extras: any) => ({ ...extras, type, progress });
