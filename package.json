@@ -1,6 +1,6 @@
 {
   "name": "redux-progress",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Redux model to capture states of asynchronous operations (i.e. promises)",
   "keywords": [],
   "main": "dist/redux-progress.umd.js",
