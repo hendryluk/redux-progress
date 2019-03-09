@@ -81,7 +81,7 @@ export abstract class Progress<R> {
     return new None()
   })();
 
-  static all = (...targets: Progress<unknown>[]): Progress<unknown> =>
+  static all = (...targets: Progress<any>[]): Progress<any[]> =>
     targets.find(p => p.isRejected) ||
     targets.find(p => p.isPending) ||
     targets.find(p => p.isNone) ||
