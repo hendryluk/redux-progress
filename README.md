@@ -24,8 +24,9 @@ You can create instance through one of this static methods.
 `static fail: (any) => Progress<any>;`
 
 ```javascript
-const success = Progress.success({});
+const success = Progress.success({}); // Progress.success(null) means the request succeeded and the result was null. 
 const fail = Progress.fail({a: '1'});
+const none = Progress.none; // This represents the Fetch/async action has not been started yet.
 ```
 
 Once instance is created there is no way to change object status (e.g. success or failed).
