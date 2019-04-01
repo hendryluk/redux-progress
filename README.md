@@ -31,8 +31,7 @@ const inProgress = Progress.inProgress; // This represents the Fetch/async actio
 ```
 
 Once instance is created there is no way to change object status (e.g. success or failed).
-Two more statuses are available through static properties `Progress.inProgress` and `Progress.none`.
-Basically those properties is `Progress` instances with predefined statuses.
+The 2 static properties `Progress.inProgress` and `Progress.none` are basically those properties is `Progress` instances with predefined statuses.
 
 
 ### Instance properties
